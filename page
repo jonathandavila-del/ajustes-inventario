@@ -152,7 +152,7 @@
 // CONFIGURACIÓN OFICIAL - TUS DATOS CONECTADOS
 // ============================================================
 const SUPABASE_URL    = 'https://pjoiiygbuzwzlenwewnj.supabase.co';
-const SUPABASE_ANON   = 'sb_publishable_oBXHeS0w6tJhkluGeTC3-g_cCZVLicn';
+const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqb2lpeWdidXp3emxlbndld25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjE1MzgsImV4cCI6MjA5MDIzNzUzOH0.VPl0IUwTjmf4K1HWoY6kmXNG-dHHrX-O0t9_-UivGWg';
 const FUNCION_NOTIFY  = SUPABASE_URL + '/functions/v1/notify';
 const PWD_AUDITORIA   = 'admin123'; 
 
