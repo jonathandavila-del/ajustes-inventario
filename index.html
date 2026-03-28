@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>StockMaster | Gestión de Inventario (Spotify Style)</title>
+    <title>StockMaster | Spotify Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -13,279 +13,153 @@
             --text-base: #FFFFFF;
             --text-subdued: #A7A7A7;
             --accent-green: #1ED760;
-            --accent-purple: #1F1026;
-            --banner-dark: #090212;
-            --sidebar-width: 250px;
+            --sidebar-width: 240px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg-base); color: var(--text-base); line-height: 1.6; overflow: hidden; display: flex; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg-base); color: var(--text-base); display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- BARRA LATERAL ESTILO SPOTIFY --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-surface);
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            height: 100vh;
-        }
-
-        .nav-brand { font-size: 1.5rem; font-weight: 900; color: var(--text-base); text-decoration: none; margin-bottom: 2rem; display: flex; align-items: center; gap: 8px; }
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-width); background: #000; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border-right: 1px solid #282828; }
+        .nav-brand { font-size: 1.5rem; font-weight: 900; color: #fff; text-decoration: none; margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .nav-brand span { color: var(--accent-green); }
-        .nav-brand img { width: 30px; height: 30px; }
+        .nav-link { color: var(--text-subdued); text-decoration: none; font-weight: 700; transition: 0.2s; display: flex; align-items: center; gap: 15px; padding: 10px 0; font-size: 0.9rem; }
+        .nav-link:hover, .nav-link.active { color: #fff; }
 
-        .nav-link { color: var(--text-subdued); text-decoration: none; font-weight: 500; font-size: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { color: var(--text-base); }
-        .nav-link.active i { color: var(--accent-green); }
-
-        .btn-back { margin-top: auto; background: none; border: 1px solid var(--text-subdued); color: var(--text-subdued); padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: none; }
-        .btn-back:hover { border-color: var(--text-base); color: var(--text-base); }
-
-        /* --- PANEL PRINCIPAL ESTILO SPOTIFY --- */
-        .main-panel {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            padding-bottom: 90px; /* Espacio para el banner inferior */
-        }
-
-        /* BARRA SUPERIOR */
-        .top-bar {
-            background: rgba(18, 18, 18, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 1.5rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .top-bar-link { color: var(--text-subdued); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: 0.2s; }
-        .top-bar-link:hover { color: var(--text-base); }
-        .btn-top { background: none; border: none; color: var(--text-subdued); font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.2s; }
-        .btn-top:hover { color: var(--text-base); }
-
-        /* VISTAS */
-        .view { display: none; padding: 2rem; animation: fadeIn 0.3s ease; }
-        .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* LANDING */
-        .view h1 { font-size: 2rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--text-base); }
-        .view p { color: var(--text-subdued); margin-bottom: 2rem; }
-
-        .role-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
-        .role-card {
-            background: #181818; border-radius: 12px; padding: 1.5rem; cursor: pointer;
-            transition: 0.3s; display: flex; flex-direction: column; align-items: flex-start;
-        }
-        .role-card:hover { background: #282828; }
-        .role-card .icon-box { font-size: 40px; margin-bottom: 1.5rem; color: var(--accent-green); }
-        .role-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-base); }
-        .role-card p { font-size: 0.85rem; color: var(--text-subdued); margin-bottom: 0; text-align: left; }
-
-        /* FORMULARIOS Y TARJETAS EN PANEL PRINCIPAL */
-        .card { background: var(--bg-surface); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.05); }
-        label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-subdued); margin-bottom: 8px; letter-spacing: 1px; }
-        input, select, textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--bg-elevated); border-radius: 6px; font-size: 1rem; background: var(--bg-elevated); color: var(--text-base); transition: 0.2s; }
-        input:focus, select:focus { outline: none; border-color: rgba(255, 255, 255, 0.3); }
+        /* MAIN PANEL */
+        .main-panel { flex: 1; background: linear-gradient(180deg, #1e1e1e 0%, #121212 100%); overflow-y: auto; position: relative; }
         
-        .btn-main { background: var(--text-base); color: var(--bg-base); padding: 0.8rem 1.5rem; border-radius: 20px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; width: 100%; }
-        .btn-main:hover { transform: scale(1.03); background: #E6E6E6; }
-        .btn-success { background: var(--accent-green); color: var(--bg-base); padding: 0.8rem 1.5rem; border-radius: 20px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; font-size: 0.95rem; }
-        .btn-success:hover { transform: scale(1.03); background: #27ED7D; }
+        .top-bar { height: 64px; display: flex; justify-content: flex-end; align-items: center; padding: 0 2rem; background: rgba(0,0,0,0.3); sticky: top; }
+        .btn-user { background: rgba(0,0,0,0.7); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #333; }
 
-        /* CONFIRM BOX */
-        .confirm-box { background: var(--bg-surface); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); overflow: hidden; max-width: 400px; margin: 0 auto; }
-        .confirm-header { background: #282828; color: var(--text-base); padding: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-        .confirm-body { padding: 1.5rem; }
-        .pin-input { font-size: 2rem; text-align: center; letter-spacing: 15px; font-weight: 900; color: var(--text-base); margin: 1rem 0; background: var(--bg-base); border: 2px solid var(--bg-elevated); }
+        .content { padding: 2rem; }
+        h1 { font-size: 2rem; font-weight: 900; margin-bottom: 1.5rem; letter-spacing: -1px; }
 
-        /* --- BANNER INFERIOR ESTILO SPOTIFY --- */
-        .bottom-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 90px;
-            background: linear-gradient(0deg, #090212 0%, #1F1026 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 150;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 0 2rem;
+        /* GRID DE TIENDAS (COMO ALBUMES) */
+        .grid-tiendas { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; }
+        .tienda-card { 
+            background: #181818; padding: 1rem; border-radius: 8px; transition: 0.3s; cursor: pointer; 
+            border: 1px solid transparent;
         }
-        .banner-content { display: flex; align-items: center; justify-content: center; gap: 2rem; }
-        .banner-link { color: var(--text-subdued); text-decoration: none; font-size: 0.85rem; transition: 0.2s; }
-        .banner-link:hover { color: var(--text-base); text-decoration: underline; }
-        .separator { width: 1px; height: 15px; background: rgba(255, 255, 255, 0.1); }
+        .tienda-card:hover { background: #282828; transform: translateY(-5px); }
+        .tienda-img { 
+            width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #333, #111); 
+            border-radius: 6px; margin-bottom: 1rem; display: flex; align-items: center; 
+            justify-content: center; font-size: 3rem; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .tienda-card h3 { font-size: 1rem; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+        .tienda-card p { font-size: 0.85rem; color: var(--text-subdued); }
 
+        /* SECCIÓN PIN (MODAL STYLE) */
+        .pin-view { display: none; max-width: 400px; margin: 4rem auto; text-align: center; background: var(--bg-surface); padding: 3rem; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid #333; }
+        .pin-view.active { display: block; animation: fadeIn 0.3s ease; }
+        .pin-input { background: #333; border: 1px solid #444; color: white; font-size: 2.5rem; text-align: center; width: 200px; padding: 10px; border-radius: 8px; margin: 20px 0; letter-spacing: 10px; }
+        .btn-confirm { background: var(--accent-green); color: black; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 1rem; width: 100%; }
+        .btn-confirm:hover { transform: scale(1.04); background: #1fdf64; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <a href="#" class="nav-brand" onclick="goHome()">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Spotify_icon.svg" alt="Logo">
+        <div class="nav-brand" onclick="goHome()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#1ED760"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.492 17.302c-.215.353-.674.464-1.026.249-2.853-1.743-6.444-2.138-10.672-1.173-.404.092-.81-.158-.903-.562-.093-.404.158-.811.562-.904 4.636-1.06 8.59-.61 11.789 1.344.353.216.464.675.25 1.026zm1.465-3.264c-.27.44-.846.577-1.287.307-3.266-2.008-8.245-2.59-12.106-1.417-.497.151-1.022-.128-1.173-.625-.151-.498.128-1.023.626-1.173 4.417-1.341 9.904-.69 13.633 1.605.441.27.578.847.307 1.288zm.135-3.398c-3.918-2.327-10.375-2.542-14.123-1.405-.6.182-1.24-.163-1.423-.763-.182-.6.163-1.24.763-1.423 4.314-1.31 11.442-1.055 15.968 1.631.54.32.716 1.015.396 1.554-.32.539-1.015.715-1.554.396z"/></svg>
             Stock<span>Master</span>
-        </a>
-        <a href="#" class="nav-link active" onclick="goHome()"><i class="icon"></i>Inicio</a>
-        <a href="#" class="nav-link" onclick="alert('Próximamente')"><i class="icon"></i>Buscar</a>
-        <a href="#" class="nav-link" onclick="showView('viewSelTienda')"><i class="icon"></i>Tu Inventario</a>
-
-        <button class="btn-back" id="btnBack" onclick="goHome()">← Volver al Inicio</button>
+        </div>
+        <a href="#" class="nav-link active" onclick="goHome()">Inicio</a>
+        <a href="#" class="nav-link" onclick="alert('Historial próximamente')">Tu Biblioteca</a>
     </div>
 
     <div class="main-panel">
-        
         <div class="top-bar">
-            <a href="#" class="top-bar-link">Premium</a>
-            <a href="#" class="top-bar-link">Ayuda</a>
-            <a href="#" class="top-bar-link">Descargar</a>
-            <button class="btn-top" onclick="alert('Funcionalidad de registro próximamente')">Registrarse</button>
-            <button class="btn-success" onclick="alert('Funcionalidad de inicio próximamente')">Iniciar sesión</button>
+            <button class="btn-user">Usuario Invitado</button>
         </div>
 
-        <div class="view active" id="viewLanding">
-            <h1>Bienvenido</h1>
-            <p>Selecciona tu perfil para ingresar al sistema</p>
-            <div class="role-cards">
-                <div class="role-card" onclick="showView('viewSelTienda')">
-                    <div class="icon-box">🏪</div>
-                    <h3>Tiendas</h3>
-                    <p>Reportar ajustes de inventario</p>
-                </div>
-                <div class="role-card" onclick="alert('Próximamente')">
-                    <div class="icon-box">📋</div>
-                    <h3>Supervisión</h3>
-                    <p>Aprobar solicitudes pendientes</p>
-                </div>
-                <div class="role-card" onclick="alert('Próximamente')">
-                    <div class="icon-box">📊</div>
-                    <h3>Auditoría</h3>
-                    <p>Dashboard de control total</p>
+        <div class="content">
+            <div id="viewLanding" class="view active">
+                <h1>Tus Tiendas</h1>
+                <div id="tiendasGrid" class="grid-tiendas">
+                    <p style="color: var(--text-subdued)">Cargando inventario...</p>
                 </div>
             </div>
-        </div>
 
-        <div class="view" id="viewSelTienda">
-            <div class="card" style="max-width: 450px; margin: 0 auto;">
-                <label>Selecciona tu Tienda</label>
-                <select id="selTiendaStep1" onchange="onTiendaSelected(this.value)">
-                    <option value="">Cargando tiendas...</option>
-                </select>
-
-                <div id="confirmBox" style="display:none; margin-top: 2rem;">
-                    <div class="confirm-box">
-                        <div class="confirm-header">
-                            <h3 id="cfNombre">Nombre Tienda</h3>
-                            <small id="cfCodigo" style="color:var(--text-subdued)">Código: 000</small>
-                        </div>
-                        <div class="confirm-body">
-                            <label>Ingresa tu PIN de acceso</label>
-                            <input type="password" id="inputPin" class="pin-input" maxlength="4" placeholder="••••">
-                            <button class="btn-main" onclick="validarPin()">Ingresar al Sistema</button>
-                            <div id="pinError" style="color:var(--danger); font-size:12px; margin-top:10px; text-align:center; font-weight:700;"></div>
-                        </div>
-                    </div>
-                </div>
+            <div id="viewPin" class="pin-view">
+                <h2 id="pinTiendaNombre">Nombre Tienda</h2>
+                <p id="pinTiendaCodigo" style="color: var(--text-subdued)">Código: 000</p>
+                <input type="password" id="inputPin" class="pin-input" maxlength="4" placeholder="••••">
+                <button class="btn-confirm" onclick="validarPin()">Entrar</button>
+                <p id="pinError" style="color: #ff4d4d; margin-top: 15px; font-weight: 700;"></p>
+                <button onclick="goHome()" style="background:none; border:none; color:var(--text-subdued); margin-top:20px; cursor:pointer; text-decoration:underline;">Cancelar</button>
             </div>
-        </div>
 
-        <div class="view" id="viewFormulario">
-            <div class="card">
-                <h2 id="titleTienda" style="font-weight:900;">Tienda Activa</h2>
-                <p>Aquí irá tu tabla de SKUs y motivos...</p>
-                <button class="btn-success" onclick="goHome()" style="margin-top:2rem">Finalizar Sesión</button>
+            <div id="viewFormulario" class="view" style="display:none; text-align:center; padding-top: 5rem;">
+                <h1 id="titleTienda" style="color: var(--accent-green)">Panel Activo</h1>
+                <p>Módulo de Ajustes de Inventario cargado correctamente.</p>
+                <button class="btn-confirm" style="width:auto; margin-top:2rem;" onclick="goHome()">Cerrar Sesión</button>
             </div>
-        </div>
-
-    </div>
-
-    <div class="bottom-banner">
-        <div class="banner-content">
-            <a href="#" class="banner-link">Términos y condiciones</a>
-            <div class="separator"></div>
-            <a href="#" class="banner-link">Política de privacidad</a>
-            <div class="separator"></div>
-            <a href="#" class="banner-link">Ayuda</a>
-            <div class="separator"></div>
-            <p style="color: var(--text-subdued); font-size: 0.8rem">Español de Latinoamérica</p>
         </div>
     </div>
 
 <script>
-// CONFIGURACIÓN SUPABASE - TUS DATOS CONECTADOS
 const SUPABASE_URL = 'https://pjoiiygbuzwzlenwewnj.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqb2lpeWdidXp3emxlbndld25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjE1MzgsImV4cCI6MjA5MDIzNzUzOH0.VPl0IUwTjmf4K1HWoY6kmXNG-dHHrX-O0t9_-UivGWg';
 
 let tiendasCache = [];
 let tiendaActiva = null;
 
-// NAVEGACIÓN
-function showView(viewId) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
-    document.getElementById('btnBack').style.display = viewId === 'viewLanding' ? 'none' : 'block';
-    
-    // Cambiar link activo en sidebar
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    if(viewId === 'viewLanding') document.querySelector('.nav-link:first-child').classList.add('active');
-    
-    if(viewId === 'viewSelTienda') cargarTiendas();
-}
-
-function goHome() {
-    showView('viewLanding');
-    document.getElementById('confirmBox').style.display = 'none';
-    const sel = document.getElementById('selTiendaStep1');
-    if (sel) sel.value = "";
-}
-
-// LÓGICA DE TIENDAS
 async function cargarTiendas() {
-    const sel = document.getElementById('selTiendaStep1');
+    const grid = document.getElementById('tiendasGrid');
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?select=*&order=codigo.asc`, {
             headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
         });
         tiendasCache = await response.json();
         
-        sel.innerHTML = '<option value="">-- Selecciona --</option>' + 
-            tiendasCache.map(t => `<option value="${t.codigo}">${t.codigo} - ${t.nombre}</option>`).join('');
+        grid.innerHTML = tiendasCache.map(t => `
+            <div class="tienda-card" onclick="pedirPin('${t.codigo}')">
+                <div class="tienda-img">🏪</div>
+                <h3>${t.nombre}</h3>
+                <p>Tienda #${t.codigo}</p>
+            </div>
+        `).join('');
     } catch (e) {
-        sel.innerHTML = '<option>Error al conectar</option>';
+        grid.innerHTML = '<p>Error al conectar con la base de datos.</p>';
     }
 }
 
-function onTiendaSelected(codigo) {
-    const tienda = tiendasCache.find(t => t.codigo == codigo);
-    if (tienda) {
-        tiendaActiva = tienda;
-        document.getElementById('cfNombre').innerText = tienda.nombre;
-        document.getElementById('cfCodigo').innerText = 'Código: ' + tienda.codigo;
-        document.getElementById('confirmBox').style.display = 'block';
-        document.getElementById('pinError').innerText = "";
-        document.getElementById('inputPin').value = "";
-    }
+function pedirPin(codigo) {
+    tiendaActiva = tiendasCache.find(t => t.codigo == codigo);
+    document.getElementById('viewLanding').style.display = 'none';
+    document.getElementById('viewPin').classList.add('active');
+    document.getElementById('pinTiendaNombre').innerText = tiendaActiva.nombre;
+    document.getElementById('pinTiendaCodigo').innerText = 'Código: ' + tiendaActiva.codigo;
+    document.getElementById('inputPin').value = '';
+    document.getElementById('pinError').innerText = '';
 }
 
 function validarPin() {
-    const pinIngresado = document.getElementById('inputPin').value;
-    if (tiendaActiva && tiendaActiva.pin == pinIngresado) {
-        document.getElementById('titleTienda').innerText = "Panel: " + tiendaActiva.nombre;
-        showView('viewFormulario');
+    const pinVal = document.getElementById('inputPin').value;
+    if (tiendaActiva && tiendaActiva.pin == pinVal) {
+        document.getElementById('viewPin').classList.remove('active');
+        document.getElementById('viewPin').style.display = 'none';
+        document.getElementById('viewFormulario').style.display = 'block';
+        document.getElementById('titleTienda').innerText = "📍 " + tiendaActiva.nombre;
     } else {
-        document.getElementById('pinError').innerText = "❌ PIN Incorrecto";
+        document.getElementById('pinError').innerText = "❌ PIN INCORRECTO";
     }
 }
+
+function goHome() {
+    document.getElementById('viewLanding').style.display = 'block';
+    document.getElementById('viewPin').classList.remove('active');
+    document.getElementById('viewPin').style.display = 'none';
+    document.getElementById('viewFormulario').style.display = 'none';
+    tiendaActiva = null;
+}
+
+// Carga inicial
+cargarTiendas();
 </script>
 
 </body>
