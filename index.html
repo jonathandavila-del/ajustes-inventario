@@ -3,372 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>3A Perú | Ajustes de Inventario</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <title>3A Perú | Gestión de Inventarios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #000000;
-            --bg-surface: #121212;
-            --bg-elevated: #282828;
-            --text-base: #FFFFFF;
-            --text-subdued: #A7A7A7;
-            --accent-green: #1ED760;
-            --danger: #e74c3c;
-            --sidebar-width: 240px;
+            --bg-dark: #0a0a0a;
+            --surface: #1a1a1a;
+            --accent-blue: #0056b3; /* Azul 3A */
+            --text-main: #ffffff;
+            --text-dim: #b3b3b3;
+            --danger: #ff4d4d;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg-base); color: var(--text-base); display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR (Estilo Spotify) */
-        .sidebar { width: var(--sidebar-width); background: #000; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border-right: 1px solid #282828; }
-        .logo-3a { font-size: 1.5rem; font-weight: 900; color: #fff; text-decoration: none; margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .logo-3a span { color: var(--accent-green); }
-        .nav-link { color: var(--text-subdued); text-decoration: none; font-weight: 700; transition: 0.2s; display: flex; align-items: center; gap: 15px; padding: 10px 0; font-size: 0.9rem; }
-        .nav-link:hover, .nav-link.active { color: #fff; }
+        /* CONTENEDOR DE TRANSICIÓN */
+        .app-container { position: relative; width: 100%; height: 100%; }
+        .view { 
+            position: absolute; width: 100%; height: 100%; 
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; opacity: 0; visibility: hidden; 
+        }
+        .view.active { opacity: 1; visibility: visible; }
 
-        /* MAIN PANEL */
-        .main-panel { flex: 1; background: linear-gradient(180deg, #1e1e1e 0%, #121212 100%); overflow-y: auto; position: relative; display: flex; flex-direction: column; }
+        /* LOGIN VIEW */
+        .login-view { justify-content: center; align-items: center; background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%); }
+        .login-card { background: var(--surface); padding: 3rem; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid #333; text-align: center; }
+        .brand-logo { width: 120px; margin-bottom: 2rem; }
         
-        /* Barra superior para el título de la tienda */
-        .top-bar { height: 64px; display: flex; justify-content: flex-end; align-items: center; padding: 0 2rem; background: rgba(0,0,0,0.3); sticky: top; z-index: 10; }
-        .tienda-activo-label { font-size: 1.2rem; font-weight: 700; color: var(--text-base); display: none; } /* Oculto hasta login */
+        select, input { 
+            width: 100%; padding: 14px; background: #222; border: 1px solid #444; 
+            color: white; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; outline: none;
+        }
+        select:focus, input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 2px rgba(0,86,179,0.3); }
 
-        .content { padding: 2rem; flex: 1; }
-        
-        /* LOGIN BOX CORPORATIVO */
-        .login-view { display: none; max-width: 400px; margin: 5rem auto; text-align: center; background: var(--bg-surface); padding: 3rem; border-radius: 12px; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .login-view.active { display: block; animation: fadeIn 0.3s ease; }
-        .pin-input { background: #333; border: 1px solid #444; color: white; font-size: 2.5rem; text-align: center; width: 200px; padding: 10px; border-radius: 8px; margin: 20px 0; letter-spacing: 10px; }
-        
-        /* TABLA DINÁMICA DE ENTRADA RÁPIDA (REPLICA DE LA IMAGEN) */
-        .view-tienda { display: none; }
-        .view-tienda.active { display: block; animation: fadeIn 0.3s ease; }
+        .btn-access { 
+            background: var(--accent-blue); color: white; border: none; padding: 15px; 
+            border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.3s;
+        }
+        .btn-access:hover { background: #004494; transform: translateY(-2px); }
 
-        .table-container { background: var(--bg-surface); border-radius: 8px; border: 1px solid #282828; overflow: hidden; margin-top: 1rem; }
-        .inventory-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        /* MAIN APP VIEW */
+        .main-view { background: var(--bg-dark); }
+        .header { height: 70px; background: var(--surface); display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; border-bottom: 1px solid #333; }
         
-        /* Encabezado oscuro y profesional */
-        .inventory-table thead { background: #1e293a; color: #e2e8f0; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
-        .inventory-table th { text-align: left; padding: 12px 15px; font-weight: 700; border-bottom: 1px solid #333; }
-        
-        .inventory-table tbody tr { border-bottom: 1px solid #282828; transition: 0.2s; }
-        .inventory-table tbody tr:hover { background: rgba(255,255,255,0.03); }
-        .inventory-table td { padding: 10px 15px; color: var(--text-base); }
+        .content { padding: 2rem; overflow-y: auto; flex: 1; }
 
-        /* Estilos de inputs dentro de la tabla */
-        .inventory-table input { width: 100%; background: transparent; border: none; color: white; font-size: 0.9rem; padding: 5px 0; }
-        .inventory-table input:focus { outline: none; border-bottom: 2px solid var(--accent-green); }
-        .input-sku { font-weight: 700; color: var(--accent-green); width: 100px !important; }
-        .cell-description { color: var(--text-subdued); width: 400px; }
+        /* TABLA ESTILO 3A */
+        .table-card { background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--accent-blue); }
+        th { padding: 15px; text-align: left; font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 12px 15px; border-bottom: 1px solid #333; }
         
-        /* Columnas de cálculo */
-        .cell-calc { text-align: center; width: 90px; }
-        .input-qty { text-align: center; width: 80px !important; background: rgba(255,255,255,0.05) !important; border-radius: 4px; padding: 5px !important;}
-        
-        /* Colores de diferencia (rojo/verde) */
-        .cell-diff { text-align: center; font-weight: 700; width: 90px; }
-        .cell-value { text-align: right; width: 130px; }
-        .cell-actions { text-align: center; width: 60px; }
-        
-        .total-row { background: var(--bg-surface); font-weight: 700; text-align: right; font-size: 1.1rem; border-top: 2px solid #282828; }
-        .total-label { color: var(--text-subdued); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
+        .input-inline { background: transparent; border: none; border-bottom: 1px solid #444; width: 100%; padding: 5px; color: white; }
+        .input-inline:focus { border-bottom-color: var(--accent-blue); }
 
-        /* BOTONES CORPORATIVOS */
-        .btn { padding: 10px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; font-size: 0.85rem; text-transform: uppercase; }
-        .btn-green { background: var(--accent-green); color: black; }
-        .btn-green:hover { transform: scale(1.03); background: #23f26f; }
-        .btn-dark { background: var(--bg-elevated); color: white; }
-        .btn-dark:hover { background: #3e3e3e; }
-        .btn-add-row { background: none; color: var(--accent-green); font-weight: 700; border: none; cursor: pointer; font-size: 0.9rem; padding: 10px 15px; margin-top: 10px; }
+        .diff-tag { font-weight: 800; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; }
+        .diff-neg { color: var(--danger); }
+        .diff-pos { color: #4ade80; }
 
-        /* Ticket de confirmación (oculto por defecto) */
-        .ticket-view { display: none; text-align: center; margin-top: 2rem; background: white; color: black; padding: 2rem; border-radius: 8px; max-width: 500px; margin: 3rem auto; font-family: 'Courier New', monospace; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .ticket-header { border-bottom: 2px dashed black; padding-bottom: 1rem; margin-bottom: 1rem; }
+        .btn-add { color: var(--accent-blue); background: none; border: none; cursor: pointer; font-weight: 700; margin-top: 1rem; padding: 10px; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* ANIMACIÓN DE SALIDA */
+        .slide-up { transform: translateY(-30px); opacity: 0; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo-3a" onclick="goHome()">
-            3A<span>PERÚ</span>
-        </div>
-        <a href="#" class="nav-link active" onclick="goHome()">Inicio</a>
-        <a href="#" class="nav-link" onclick="alert('Funcionalidad próximamente')">Panel Zonal</a>
-        <a href="#" class="nav-link" onclick="alert('Funcionalidad próximamente')">Auditoría</a>
-    </div>
-
-    <div class="main-panel">
+    <div class="app-container">
         
-        <div class="top-bar">
-            <div id="tiendaLabel" class="tienda-activo-label">📍 Tienda Activa</div>
+        <div id="viewLogin" class="view login-view active">
+            <div class="login-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" alt="Logo 3A" class="brand-logo">
+                <h2 style="margin-bottom: 1.5rem;">Gestión de Ajustes</h2>
+                
+                <select id="tiendaSelect">
+                    <option value="">Seleccione Tienda...</option>
+                    </select>
+                
+                <input type="password" id="tiendaPin" placeholder="PIN de Seguridad">
+                
+                <button class="btn-access" onclick="ingresarApp()">INGRESAR AL SISTEMA</button>
+                <p id="loginError" style="color: var(--danger); font-size: 0.8rem; margin-top: 1rem;"></p>
+            </div>
         </div>
 
-        <div class="content">
-
-            <div id="viewLogin" class="login-view active">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="#1ED760" style="margin-bottom:1rem;"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.492 17.302c-.215.353-.674.464-1.026.249-2.853-1.743-6.444-2.138-10.672-1.173-.404.092-.81-.158-.903-.562-.093-.404.158-.811.562-.904 4.636-1.06 8.59-.61 11.789 1.344.353.216.464.675.25 1.026zm1.465-3.264c-.27.44-.846.577-1.287.307-3.266-2.008-8.245-2.59-12.106-1.417-.497.151-1.022-.128-1.173-.625-.151-.498.128-1.023.626-1.173 4.417-1.341 9.904-.69 13.633 1.605.441.27.578.847.307 1.288zm.135-3.398c-3.918-2.327-10.375-2.542-14.123-1.405-.6.182-1.24-.163-1.423-.763-.182-.6.163-1.24.763-1.423 4.314-1.31 11.442-1.055 15.968 1.631.54.32.716 1.015.396 1.554-.32.539-1.015.715-1.554.396z"/></svg>
-                <h2>Ajustes de Inventario</h2>
-                <p style="color:var(--text-subdued); margin-bottom:2rem;">Ingrese el PIN de su tienda para comenzar</p>
-                <input type="password" id="inputPin" class="pin-input" maxlength="4" placeholder="••••">
-                <button class="btn btn-green" style="width:100%" onclick="validarPin()">Ingresar</button>
-                <p id="loginError" style="color: #ff4d4d; margin-top: 15px; font-weight: 700; font-size: 0.8rem;"></p>
+        <div id="viewMain" class="view main-view">
+            <div class="header">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" height="30">
+                    <h3 id="labelTiendaActiva">Tienda 000</h3>
+                </div>
+                <button onclick="cerrarSesion()" style="background:none; border:1px solid #444; color:white; padding:8px 15px; border-radius:20px; cursor:pointer;">Cerrar</button>
             </div>
 
-            <div id="viewTienda" class="view-tienda">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                    <h2 style="font-weight:900;">Solicitud de Ajuste</h2>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-dark" onclick="goHome()">Cerrar Sesión</button>
-                        <button class="btn btn-green" onclick="generarTicket()">Finalizar y Generar Ticket</button>
-                    </div>
-                </div>
-                
-                <p style="color:var(--text-subdued);">Ingrese los SKUs. La descripción se cargará automáticamente al salir del campo SKU.</p>
-                
-                <div class="table-container">
-                    <table class="inventory-table" id="inventoryTable">
+            <div class="content">
+                <div class="table-card">
+                    <table>
                         <thead>
                             <tr>
                                 <th>SKU</th>
-                                <th>Descripción del Producto</th>
-                                <th class="cell-calc">St. Kallpa</th>
-                                <th class="cell-calc">St. Físico</th>
-                                <th class="cell-calc">Diferencia</th>
-                                <th class="cell-value">Valor S/.</th>
-                                <th class="cell-actions"></th>
+                                <th>Descripción</th>
+                                <th>St. Kallpa</th>
+                                <th>St. Físico</th>
+                                <th>Diferencia</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody id="inventoryBody">
-                            <tr class="inventory-row">
-                                <td><input type="text" class="input-sku" placeholder="102030" onblur="buscarProducto(this)"></td>
-                                <td class="cell-description">Ingrese SKU</td>
-                                <td class="cell-calc"><input type="number" class="input-qty qty-kallpa" placeholder="0" oninput="calcularFila(this)"></td>
-                                <td class="cell-calc"><input type="number" class="input-qty qty-fisico" placeholder="0" oninput="calcularFila(this)"></td>
-                                <td class="cell-diff diff-neutral">0</td>
-                                <td class="cell-value">S/ 0.00</td>
-                                <td class="cell-actions"><button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="eliminarFila(this)">✕</button></td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr class="total-row">
-                                <td colspan="5"></td>
-                                <td class="total-label">Total Valorizado:</td>
-                                <td id="totalValorizado" style="padding-right:15px; color:white;">S/ 0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
+                            </tbody>
                     </table>
-                    <button class="btn-add-row" onclick="agregarFila()">+ AGREGAR OTRO PRODUCTO</button>
                 </div>
+                <button class="btn-add" onclick="agregarFila()">+ AGREGAR PRODUCTO</button>
             </div>
-
-            <div id="viewTicket" class="ticket-view">
-                <div class="ticket-header">
-                    <h2>3A PERÚ</h2>
-                    <p>CONTROL DE INVENTARIOS</p>
-                </div>
-                <div style="text-align:left; font-size:0.9rem;">
-                    <p><b>Tienda:</b> <span id="ticketTiendaName">Nombre de Tienda</span></p>
-                    <p><b>Fecha:</b> <span id="ticketDate">--/--/----</span></p>
-                    <p><b>Ticket #:</b> <span id="ticketNumber">0001</span></p>
-                    <p><b>Estado:</b> ENVIADO A SUPERVISIÓN</p>
-                </div>
-                <div style="border-top: 1px dashed black; margin-top:1rem; padding-top:1rem;">
-                    <p>Ajuste Total Valorizado:</p>
-                    <h1 id="ticketTotal">S/ -0.00</h1>
-                </div>
-                <p style="font-size:0.8rem; color:#555; margin-top:1rem;">Guarde este ticket como sustento de su operación.</p>
-                <button class="btn btn-dark" style="margin-top:2rem;" onclick="goHome()">Volver al Inicio</button>
-            </div>
-
         </div>
+
     </div>
 
 <script>
-// CONFIGURACIÓN SUPABASE
 const SUPABASE_URL = 'https://pjoiiygbuzwzlenwewnj.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqb2lpeWdidXp3emxlbndld25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjE1MzgsImV4cCI6MjA5MDIzNzUzOH0.VPl0IUwTjmf4K1HWoY6kmXNG-dHHrX-O0t9_-UivGWg';
 
-let tiendaActiva = null;
+let tiendasCache = [];
 
-async function validarPin() {
-    const pinVal = document.getElementById('inputPin').value;
-    const errorMsg = document.getElementById('loginError');
-    
-    // Simulación de búsqueda de tienda por PIN.
-    // En producción, buscarías en la tabla 'tiendas' de Supabase
-    if (pinVal === '1234') { 
-        tiendaActiva = { codigo: 'T042', nombre: 'Independencia' };
-        
-        // Actualizar interfaz
-        document.getElementById('tiendaLabel').innerText = "📍 " + tiendaActiva.nombre;
-        document.getElementById('tiendaLabel').style.display = 'block';
-        
-        document.getElementById('viewLogin').style.display = 'none';
-        document.getElementById('viewTienda').classList.add('active');
-        document.getElementById('loginError').innerText = "";
-    } else {
-        errorMsg.innerText = "❌ PIN INCORRECTO";
-    }
-}
-
-// LÓGICA DE TABLA DINÁMICA
-function agregarFila() {
-    const tbody = document.getElementById('inventoryBody');
-    const newRow = tbody.rows[0].cloneNode(true);
-    
-    // Limpiar inputs de la nueva fila
-    newRow.querySelectorAll('input').forEach(input => input.value = '');
-    newRow.querySelector('.cell-description').innerText = 'Ingrese SKU';
-    newRow.querySelector('.cell-description').style.color = 'var(--text-subdued)';
-    newRow.querySelector('.cell-diff').innerText = '0';
-    newRow.querySelector('.cell-diff').className = 'cell-diff diff-neutral';
-    newRow.querySelector('.cell-value').innerText = 'S/ 0.00';
-    newRow.querySelector('.cell-value').dataset.costo = '0';
-    
-    tbody.appendChild(newRow);
-}
-
-function eliminarFila(btn) {
-    const tbody = document.getElementById('inventoryBody');
-    if (tbody.rows.length > 1) {
-        btn.closest('tr').remove();
-        calcularTotalGlobal();
-    } else {
-        alert("La tabla debe tener al menos un producto.");
-    }
-}
-
-// BÚSQUEDA AUTOMÁTICA DE PRODUCTO (SKU)
-async function buscarProducto(skuInput) {
-    const row = skuInput.closest('tr');
-    const sku = skuInput.value.trim();
-    const descCell = row.querySelector('.cell-description');
-    const valueCell = row.querySelector('.cell-value');
-
-    if (!sku) return;
-
-    descCell.innerText = "Buscando...";
-    descCell.style.color = "var(--text-subdued)";
-
-    try {
-        // Buscamos en la tabla 'productos' de Supabase
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/productos?select=*&sku=eq.${sku}`, {
-            headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
-        });
-        const data = await response.json();
-
-        if (data && data.length > 0) {
-            const producto = data[0];
-            descCell.innerText = producto.descripcion;
-            descCell.style.color = "var(--text-base)";
-            
-            // Guardamos el costo unitario como dataset para cálculos
-            valueCell.dataset.costo = producto.costo_unitario; 
-            
-            // Recalculamos la fila con el nuevo costo
-            calcularFila(row.querySelector('.qty-fisico')); 
-        } else {
-            descCell.innerText = "❌ SKU no encontrado";
-            descCell.style.color = "var(--danger)";
-            valueCell.dataset.costo = '0';
-            calcularFila(row.querySelector('.qty-fisico'));
-        }
-    } catch (e) {
-        descCell.innerText = "Error de conexión";
-        console.error(e);
-    }
-}
-
-// CÁLCULOS DE LA FILA Y TOTALES
-function calcularFila(input) {
-    const row = input.closest('tr');
-    const qtyKallpa = parseFloat(row.querySelector('.qty-kallpa').value) || 0;
-    const qtyFisico = parseFloat(row.querySelector('.qty-fisico').value) || 0;
-    const diffCell = row.querySelector('.cell-diff');
-    const valueCell = row.querySelector('.cell-value');
-    const costoUnitario = parseFloat(valueCell.dataset.costo) || 0;
-
-    // Cálculo de Diferencia (Replica la imagen: Físico - Kallpa)
-    const diferencia = qtyFisico - qtyKallpa;
-    diffCell.innerText = (diferencia > 0 ? '+' : '') + diferencia;
-
-    // Color de la diferencia
-    if (diferencia > 0) diffCell.style.color = "var(--accent-green)";
-    else if (diferencia < 0) diffCell.style.color = "var(--danger)";
-    else diffCell.style.color = "var(--text-subdued)";
-
-    // Cálculo de Valor Total de la fila
-    const totalValorizado = diferencia * costoUnitario;
-    valueCell.innerText = `S/ ${totalValorizado.toFixed(2)}`;
-    valueCell.dataset.totalFila = totalValorizado; // Guardamos para el global
-
-    calcularTotalGlobal();
-}
-
-function calcularTotalGlobal() {
-    let totalGlobal = 0;
-    document.querySelectorAll('.cell-value').forEach(cell => {
-        totalGlobal += parseFloat(cell.dataset.totalFila) || 0;
+async function init() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?select=*&order=codigo.asc`, {
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
     });
-
-    const totalCell = document.getElementById('totalValorizado');
-    totalCell.innerText = `S/ ${totalGlobal.toFixed(2)}`;
-
-    // Color del total
-    if (totalGlobal < 0) totalCell.style.color = "var(--danger)";
-    else if (totalGlobal > 0) totalCell.style.color = "var(--accent-green)";
-    else totalCell.style.color = "white";
+    tiendasCache = await res.json();
+    const select = document.getElementById('tiendaSelect');
+    tiendasCache.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.codigo;
+        opt.innerText = `${t.codigo} - ${t.nombre}`;
+        select.appendChild(opt);
+    });
 }
 
-// GENERACIÓN DE TICKET (MODAL)
-function generarTicket() {
-    if (!tiendaActiva) return;
+function ingresarApp() {
+    const cod = document.getElementById('tiendaSelect').value;
+    const pin = document.getElementById('tiendaPin').value;
+    const tienda = tiendasCache.find(t => t.codigo == cod);
 
-    const totalGlobal = document.getElementById('totalValorizado').innerText;
-    
-    // Ocultar inventario y mostrar ticket
-    document.getElementById('viewTienda').classList.remove('active');
-    document.getElementById('viewTicket').style.display = 'block';
-
-    // Rellenar ticket
-    document.getElementById('ticketTiendaName').innerText = tiendaActiva.nombre;
-    document.getElementById('ticketDate').innerText = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    document.getElementById('ticketNumber').innerText = Math.floor(Math.random() * 9000) + 1000; // Número aleatorio simulado
-    document.getElementById('ticketTotal').innerText = totalGlobal;
-    
-    // Color del total en el ticket
-    const ticketTotalH1 = document.getElementById('ticketTotal');
-    if (totalGlobal.includes('-')) ticketTotalH1.style.color = "#e74c3c"; // Rojo si es negativo
-    else ticketTotalH1.style.color = "#27ae60"; // Verde si es positivo
+    if (tienda && tienda.pin == pin) {
+        document.getElementById('labelTiendaActiva').innerText = `📍 ${tienda.nombre} (${tienda.codigo})`;
+        document.getElementById('viewLogin').classList.remove('active');
+        document.getElementById('viewMain').classList.add('active');
+        agregarFila();
+    } else {
+        document.getElementById('loginError').innerText = "Acceso denegado. Verifique sus datos.";
+    }
 }
 
-function goHome() {
-    // Resetear vistas
-    document.getElementById('viewTicket').style.display = 'none';
-    document.getElementById('viewTienda').classList.remove('active');
-    document.getElementById('viewLogin').style.display = 'block';
-    
-    // Resetear login
-    document.getElementById('inputPin').value = '';
-    document.getElementById('loginError').innerText = '';
-    
-    // Ocultar label de tienda
-    document.getElementById('tiendaLabel').style.display = 'none';
-    tiendaActiva = null;
-
-    // Limpiar tabla (dejar solo una fila vacía)
-    const tbody = document.getElementById('inventoryBody');
-    tbody.innerHTML = '';
-    agregarFila(); 
+function agregarFila() {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" class="input-inline" placeholder="SKU" onblur="buscarProducto(this)"></td>
+        <td class="desc-cell" style="color:#888">Cargando...</td>
+        <td><input type="number" class="input-inline qty-kallpa" value="0" oninput="calcular(this)"></td>
+        <td><input type="number" class="input-inline qty-fisico" value="0" oninput="calcular(this)"></td>
+        <td class="diff-cell"><span class="diff-tag">0</span></td>
+        <td><button onclick="this.closest('tr').remove()" style="color:var(--danger); background:none; border:none; cursor:pointer;">✕</button></td>
+    `;
+    document.getElementById('inventoryBody').appendChild(tr);
 }
 
-// Inicializar una fila vacía
-agregarFila();
+async function buscarProducto(input) {
+    const sku = input.value;
+    const row = input.closest('tr');
+    if(!sku) return;
+    
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/productos?sku=eq.${sku}`, {
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+    });
+    const data = await res.json();
+    row.querySelector('.desc-cell').innerText = data[0]?.descripcion || "No encontrado";
+}
+
+function calcular(input) {
+    const row = input.closest('tr');
+    const k = parseFloat(row.querySelector('.qty-kallpa').value) || 0;
+    const f = parseFloat(row.querySelector('.qty-fisico').value) || 0;
+    const diff = f - k;
+    const cell = row.querySelector('.diff-cell');
+    cell.innerHTML = `<span class="diff-tag ${diff < 0 ? 'diff-neg' : 'diff-pos'}">${diff}</span>`;
+}
+
+function cerrarSesion() {
+    location.reload();
+}
+
+init();
 </script>
-
 </body>
 </html>
