@@ -3,232 +3,358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>3A Perú | Sistema de Gestión</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <title>3A Perú | Solicitud de Ajuste</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #050505;
-            --card: #121212;
-            --3a-blue: #0056b3;
-            --text: #ffffff;
-            --text-dim: #888;
-            --danger: #ff4d4d;
+            --bg-base: #000000;
+            --bg-surface: #121212;
+            --bg-elevated: #282828;
+            --text-base: #FFFFFF;
+            --text-subdued: #A7A7A7;
+            --accent-green: #1ED760;
+            --danger: #e74c3c;
+            --ticket-bg: #FFFFFF;
+            --ticket-text: #000000;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg-base); color: var(--text-base); display: flex; height: 100vh; overflow: hidden; }
 
-        .stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        .view { 
-            position: absolute; width: 100%; height: 100%; 
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            opacity: 0; transform: scale(1.05); pointer-events: none;
+        /* HEADER */
+        .header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .view.active { opacity: 1; transform: scale(1); pointer-events: all; }
+        .header h1 { font-size: 1rem; font-weight: 700; color: var(--text-subdued); display: flex; align-items: center; gap: 8px; }
+        .header h1 span { color: var(--text-base); }
 
-        /* LOGIN */
-        .view-login { display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at center, #111 0%, #050505 100%); }
-        .login-box { background: var(--card); padding: 2.5rem; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #222; }
-        .logo-3a { width: 130px; margin-bottom: 2rem; }
+        /* MAIN CONTENT (COMPACT) */
+        .main-panel { flex: 1; padding: 80px 2rem 2rem; overflow-y: auto; max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+        .view { display: none; animation: fadeIn 0.4s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LOGIN BOX (PROFESIONAL COMPACTO) */
+        .login-view { max-width: 380px; margin: 4rem auto 0; text-align: center; background: var(--bg-surface); padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .pin-input { background: #333; border: 1px solid #444; color: white; font-size: 2.2rem; text-align: center; width: 180px; padding: 8px; border-radius: 8px; margin: 1.5rem 0; letter-spacing: 10px; font-weight: 900; }
+        .login-view p { color: var(--text-subdued); margin-bottom: 1rem; font-size: 0.9rem; }
+
+        /* FORMULARIO DE SOLICITUD (TABLA COMPACTA) */
+        .form-view h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem; }
         
-        select, input { 
-            width: 100%; padding: 14px; background: #1a1a1a; border: 1px solid #333; 
-            color: white; border-radius: 10px; margin-bottom: 1.2rem; font-size: 1rem; outline: none;
-        }
-        select:focus, input:focus { border-color: var(--3a-blue); }
-
-        .btn-main { 
-            background: var(--3a-blue); color: white; border: none; padding: 16px; 
-            border-radius: 10px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase;
-        }
-
-        /* APP */
-        .nav-bar { height: 65px; background: #000; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem; border-bottom: 1px solid #222; }
-        .main-content { padding: 1.5rem; flex: 1; overflow-y: auto; max-width: 1100px; margin: 0 auto; width: 100%; }
+        .table-container { background: var(--bg-surface); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .inventory-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .inventory-table thead { background: rgba(255,255,255,0.03); color: var(--text-subdued); text-transform: uppercase; letter-spacing: 0.5px; }
+        .inventory-table th { padding: 10px; text-align: left; }
+        .inventory-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .inventory-table td { padding: 8px 10px; }
         
-        .table-container { background: var(--card); border-radius: 12px; border: 1px solid #222; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        thead { background: var(--3a-blue); font-size: 0.7rem; text-transform: uppercase; }
-        th { padding: 12px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #222; }
+        /* Inputs compactos */
+        .inventory-table input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 4px; padding: 6px; font-size: 0.85rem; }
+        .inventory-table input:focus { outline: none; border-color: rgba(255,255,255,0.3); }
+        .cell-calc { text-align: center; width: 70px; }
+        .cell-diff { text-align: center; font-weight: 700; width: 70px; }
+        .cell-value { text-align: right; width: 110px; color: var(--text-subdued); }
+        
+        .btn-add-row { background: none; color: var(--text-subdued); border: none; cursor: pointer; font-weight: 600; font-size: 0.8rem; margin-top: 1rem; }
+        .btn-add-row:hover { color: var(--text-base); }
 
-        .sku-group { display: flex; align-items: center; gap: 8px; }
-        .btn-scan { background: #333; border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; }
+        /* BOTONES CORPORATIVOS */
+        .btn { padding: 8px 18px; border-radius: 20px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-green { background: var(--accent-green); color: black; }
+        .btn-green:hover { transform: scale(1.03); }
+        .btn-green:disabled { background: #333; color: var(--text-subdued); cursor: not-allowed; }
 
-        .badge-diff { font-weight: 800; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
-        .neg { color: var(--danger); background: rgba(255, 77, 77, 0.1); }
-        .pos { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+        /* VISTA TICKET (RESUMEN PROFESIONAL) */
+        .ticket-view { background: var(--ticket-bg); color: var(--ticket-text); padding: 2.5rem; border-radius: 12px; font-family: 'Courier New', monospace; box-shadow: 0 15px 40px rgba(0,0,0,0.5); max-width: 550px; margin: 0 auto; }
+        .ticket-header { border-bottom: 1px solid var(--ticket-text); padding-bottom: 1rem; margin-bottom: 1rem; text-align: center; }
+        .ticket-details p { font-size: 0.8rem; margin-bottom: 0.3rem; }
+        .ticket-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 1.5rem; }
+        .ticket-table thead { border-bottom: 1px solid var(--ticket-text); font-weight: 700; }
+        .ticket-table td, .ticket-table th { padding: 6px 4px; text-align: left; }
+        .ticket-table td.text-right, .ticket-table th.text-right { text-align: right; }
+        .ticket-table .row-total { font-weight: 700; font-size: 0.9rem; border-top: 1px solid var(--ticket-text); }
 
-        /* MODAL ESCANER */
-        #scanner-modal {
-            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; justify-content: center; align-items: center;
-        }
-        #reader { width: 300px; border-radius: 10px; overflow: hidden; }
+        /* ESTILOS DE ESTADO */
+        .diff-neg { color: var(--danger); }
+        .diff-pos { color: #2ecc71; }
 
-        .exit-up { transform: translateY(-100%) !important; opacity: 0 !important; }
     </style>
 </head>
 <body>
 
-    <div class="stage">
-        <div id="loginView" class="view view-login active">
-            <div class="login-box">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" class="logo-3a">
-                <h2 style="margin-bottom: 1.5rem;">Acceso al Sistema</h2>
-                
-                <select id="selRol" onchange="toggleLoginType()">
-                    <option value="">Seleccione Rol...</option>
-                    <optgroup label="Administración">
-                        <option value="zonal">Supervisión Zonal</option>
-                        <option value="audit">Auditoría Central</option>
-                    </optgroup>
-                    <optgroup label="Tiendas" id="optTiendas"></optgroup>
-                </select>
-                
-                <input type="password" id="txtPin" placeholder="PIN / Contraseña">
-                <button class="btn-main" onclick="entrar()">Ingresar</button>
-                <p id="errLogin" style="color: var(--danger); font-size: 0.8rem; margin-top: 1rem;"></p>
-            </div>
-        </div>
-
-        <div id="appView" class="view">
-            <div class="nav-bar">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" height="20">
-                    <span id="labelUser" style="font-weight:700; font-size:0.9rem;">Tienda</span>
-                </div>
-                <button onclick="location.reload()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">Cerrar</button>
-            </div>
-
-            <div class="main-content">
-                <div style="margin-bottom: 1.5rem;">
-                    <h2 id="viewTitle">Ajuste de Inventario</h2>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>SKU</th>
-                                <th>Descripción</th>
-                                <th>Kallpa</th>
-                                <th>Físico</th>
-                                <th>Dif.</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaBody"></tbody>
-                    </table>
-                </div>
-                <button onclick="nuevaFila()" style="background:none; border:1px dashed #444; color:var(--text-dim); width:100%; padding:15px; margin-top:10px; cursor:pointer;">+ Añadir Producto</button>
-                <button class="btn-main" style="margin-top:2rem;" onclick="alert('Ticket Generado')">FINALIZAR AJUSTE</button>
-            </div>
+    <div class="header">
+        <h1 id="headerTienda"></h1>
+        <div id="userActions" style="display:none; gap:10px;">
+            <button class="btn btn-green" id="btnFinalizar" onclick="finalizarSolicitud()">FINALIZAR SOLICITUD</button>
+            <button class="btn btn-green" style="background:#333; color:white;" onclick="alert('Funcionalidad próximamente')">Historial</button>
         </div>
     </div>
 
-    <div id="scanner-modal">
-        <div id="reader"></div>
-        <button onclick="cerrarEscaner()" style="margin-top:20px; padding:10px 20px; background:var(--danger); border:none; color:white; border-radius:5px;">Cancelar</button>
+    <div class="main-panel">
+
+        <div id="viewLogin" class="view login-view active">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#FFFFFF" style="margin-bottom:1rem;"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.492 17.302c-.215.353-.674.464-1.026.249-2.853-1.743-6.444-2.138-10.672-1.173-.404.092-.81-.158-.903-.562-.093-.404.158-.811.562-.904 4.636-1.06 8.59-.61 11.789 1.344.353.216.464.675.25 1.026zm1.465-3.264c-.27.44-.846.577-1.287.307-3.266-2.008-8.245-2.59-12.106-1.417-.497.151-1.022-.128-1.173-.625-.151-.498.128-1.023.626-1.173 4.417-1.341 9.904-.69 13.633 1.605.441.27.578.847.307 1.288zm.135-3.398c-3.918-2.327-10.375-2.542-14.123-1.405-.6.182-1.24-.163-1.423-.763-.182-.6.163-1.24.763-1.423 4.314-1.31 11.442-1.055 15.968 1.631.54.32.716 1.015.396 1.554-.32.539-1.015.715-1.554.396z"/></svg>
+            <h2>Bienvenido</h2>
+            <p>Ingrese su PIN de tienda para comenzar una nueva solicitud.</p>
+            <input type="password" id="inputPin" class="pin-input" maxlength="4" placeholder="••••">
+            <button class="btn btn-green" style="width:100%" onclick="validarPin()">Ingresar</button>
+            <p id="loginError" style="color: #ff4d4d; margin-top: 10px; font-weight: 700; font-size: 0.8rem;"></p>
+        </div>
+
+        <div id="viewFormulario" class="view form-view">
+            <h2>Crear Solicitud de Ajuste</h2>
+            <p style="color:var(--text-subdued); margin-bottom:1rem; font-size: 0.9rem;">Ingrese los SKUs y las cantidades. La descripción y valorización se cargan automáticamente.</p>
+            
+            <div class="table-container">
+                <table class="inventory-table" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th style="width:100px;">SKU</th>
+                            <th>Descripción del Producto</th>
+                            <th class="cell-calc">Kallpa</th>
+                            <th class="cell-calc">Físico</th>
+                            <th class="cell-calc">Diferencia</th>
+                            <th class="cell-value">Valor S/.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryBody"></tbody>
+                </table>
+            </div>
+            <button class="btn-add-row" onclick="agregarFila()">+ AGREGAR OTRO SKU</button>
+        </div>
+
+        <div id="viewResumen" class="view ticket-view">
+            <div class="ticket-header">
+                <h2>3A PERÚ</h2>
+                <p>NUEVA SOLICITUD DE AJUSTE</p>
+            </div>
+            <div class="ticket-details">
+                <p><b>ID:</b> <span id="ticketId">SOL-20250326091432-017</span></p>
+                <p><b>Tienda:</b> <span id="ticketTienda"></span></p>
+                <p><b>Fecha:</b> <span id="ticketFecha"></span></p>
+                <p><b>Motivo:</b> Diferencia de conteo</p>
+                <p><b>Sustento:</b> Inventario cíclico detectó diferencias en pasillo 3.</p>
+            </div>
+            <table class="ticket-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">SKU</th>
+                        <th>Descripción</th>
+                        <th class="text-right">Diferencia</th>
+                        <th class="text-right">Valor (S/.)</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketBody">
+                    </tbody>
+                <tfoot>
+                    <tr class="row-total">
+                        <td colspan="3" class="text-right">Total Valorizado:</td>
+                        <td class="text-right" id="ticketTotal"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div style="text-align:center; margin-top:2.5rem;">
+                <button class="btn btn-green" style="background:#000; color:white; font-size:0.75rem;" onclick="location.reload()">VOLVER AL INICIO</button>
+            </div>
+        </div>
+
     </div>
 
 <script>
-const SB_URL = 'https://pjoiiygbuzwzlenwewnj.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqb2lpeWdidXp3emxlbndld25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjE1MzgsImV4cCI6MjA5MDIzNzUzOH0.VPl0IUwTjmf4K1HWoY6kmXNG-dHHrX-O0t9_-UivGWg';
+// CONFIGURACIÓN SUPABASE - TUS CREDENCIALES
+const SUPABASE_URL = 'https://pjoiiygbuzwzlenwewnj.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqb2lpeWdidXp3emxlbndld25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjE1MzgsImV4cCI6MjA5MDIzNzUzOH0.VPl0IUwTjmf4K1HWoY6kmXNG-dHHrX-O0t9_-UivGWg';
 
-let dbTiendas = [];
-let html5QrCode;
-let inputActualParaScan;
+let tiendaActiva = null;
 
-async function cargarTiendas() {
-    const r = await fetch(`${SB_URL}/rest/v1/tiendas?select=*&order=codigo.asc`, {
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-    dbTiendas = await r.json();
-    document.getElementById('optTiendas').innerHTML = dbTiendas.map(t => `<option value="${t.codigo}">${t.codigo} - ${t.nombre}</option>`).join('');
-}
-
-function entrar() {
-    const rol = document.getElementById('selRol').value;
-    const pin = document.getElementById('txtPin').value;
+// LOGIN PIN
+async function validarPin() {
+    const pinVal = document.getElementById('inputPin').value;
+    const errorMsg = document.getElementById('loginError');
     
-    if(!rol || !pin) return;
-
-    if(rol === 'zonal' || rol === 'audit') {
-        if(pin === '3A2026') { // Clave genérica para admin
-            document.getElementById('labelUser').innerText = rol === 'zonal' ? "MODO ZONAL" : "MODO AUDITORÍA";
-            document.getElementById('viewTitle').innerText = "Validación de Solicitudes";
-            document.getElementById('loginView').classList.add('exit-up');
-            setTimeout(() => { document.getElementById('loginView').classList.remove('active'); document.getElementById('appView').classList.add('active'); }, 400);
-        } else { alert("Clave admin incorrecta"); }
+    // Simulación de búsqueda por PIN (Para producción buscar en tabla 'tiendas')
+    if (pinVal === '1234') {
+        tiendaActiva = { codigo: 'T042', nombre: 'Independencia' };
+        
+        // Actualizar interfaz
+        document.getElementById('headerTienda').innerHTML = `📍 ${tiendaActiva.nombre} <span>(${tiendaActiva.codigo})</span>`;
+        document.getElementById('viewLogin').style.display = 'none';
+        document.getElementById('viewFormulario').classList.add('active');
+        document.getElementById('userActions').style.display = 'flex';
+        agregarFila(); // Cargar la primera fila vacía
     } else {
-        const t = dbTiendas.find(x => x.codigo == rol);
-        if(t && t.pin == pin) {
-            document.getElementById('labelUser').innerText = `📍 ${t.nombre}`;
-            document.getElementById('loginView').classList.add('exit-up');
-            setTimeout(() => { document.getElementById('loginView').classList.remove('active'); document.getElementById('appView').classList.add('active'); nuevaFila(); }, 400);
-        } else { alert("PIN de tienda incorrecto"); }
+        errorMsg.innerText = "❌ PIN INCORRECTO";
     }
 }
 
-function nuevaFila() {
+// GESTIÓN DE LA TABLA DINÁMICA
+function agregarFila() {
+    const tbody = document.getElementById('inventoryBody');
     const tr = document.createElement('tr');
+    tr.classList.add('inventory-row');
     tr.innerHTML = `
-        <td>
-            <div class="sku-group">
-                <input type="text" class="sku-input" style="width:80px; background:none; border:none; border-bottom:1px solid #444; color:white;" placeholder="SKU" onblur="fetchProd(this)">
-                <button class="btn-scan" onclick="abrirEscaner(this)">📷</button>
-            </div>
-        </td>
-        <td class="td-desc" style="color:var(--text-dim); font-size:0.8rem;">---</td>
-        <td><input type="number" class="qty-k" value="0" style="width:50px; background:none; border:none; color:white;" oninput="calc(this)"></td>
-        <td><input type="number" class="qty-f" value="0" style="width:50px; background:none; border:none; color:white;" oninput="calc(this)"></td>
-        <td class="td-diff"><span class="badge-diff">0</span></td>
+        <td><input type="text" class="input-sku" placeholder="SKU" onblur="buscarProducto(this)"></td>
+        <td class="cell-description" style="color:var(--text-subdued);">---</td>
+        <td class="cell-calc"><input type="number" class="qty-kallpa" placeholder="0" oninput="calcularFila(this)"></td>
+        <td class="cell-calc"><input type="number" class="qty-fisico" placeholder="0" oninput="calcularFila(this)"></td>
+        <td class="cell-diff diff-neutral">0</td>
+        <td class="cell-value" data-costo="0">S/ 0.00</td>
     `;
-    document.getElementById('tablaBody').appendChild(tr);
+    tbody.appendChild(tr);
 }
 
-// LÓGICA DEL ESCÁNER
-function abrirEscaner(btn) {
-    inputActualParaScan = btn.parentElement.querySelector('.sku-input');
-    document.getElementById('scanner-modal').style.display = 'flex';
-    html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
-        (decodedText) => {
-            inputActualParaScan.value = decodedText;
-            fetchProd(inputActualParaScan);
-            cerrarEscaner();
+// BÚSQUEDA AUTOMÁTICA DE PRODUCTO (Al salir del SKU)
+async function buscarProducto(skuInput) {
+    const row = skuInput.closest('tr');
+    const sku = skuInput.value.trim();
+    const descCell = row.querySelector('.cell-description');
+    const valueCell = row.querySelector('.cell-value');
+
+    if (!sku) return;
+
+    descCell.innerText = "...";
+    valueCell.dataset.costo = '0'; // Resetear costo
+
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/productos?select=*&sku=eq.${sku}`, {
+            headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+        });
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const producto = data[0];
+            descCell.innerText = producto.descripcion;
+            descCell.style.color = "var(--text-base)";
+            valueCell.dataset.costo = producto.costo_unitario; // Guardar costo unitario
+            calcularFila(row.querySelector('.qty-kallpa')); // Recalcular valor de fila
+        } else {
+            descCell.innerText = "❌ SKU no encontrado";
+            descCell.style.color = "var(--danger)";
         }
-    );
+    } catch (e) { console.error(e); }
 }
 
-function cerrarEscaner() {
-    if(html5QrCode) html5QrCode.stop();
-    document.getElementById('scanner-modal').style.display = 'none';
+// CÁLCULOS DINÁMICOS
+function calcularFila(input) {
+    const row = input.closest('tr');
+    const qtyKallpa = parseFloat(row.querySelector('.qty-kallpa').value) || 0;
+    const qtyFisico = parseFloat(row.querySelector('.qty-fisico').value) || 0;
+    const diffCell = row.querySelector('.cell-diff');
+    const valueCell = row.querySelector('.cell-value');
+    const costoUnitario = parseFloat(valueCell.dataset.costo) || 0;
+
+    // Cálculo de Diferencia (Físico - Kallpa)
+    const diferencia = qtyFisico - qtyKallpa;
+    diffCell.innerText = (diferencia > 0 ? '+' : '') + diferencia;
+
+    // Color diferencia
+    diffCell.className = 'cell-diff ' + (diferencia > 0 ? 'diff-pos' : (diferencia < 0 ? 'diff-neg' : 'diff-neutral'));
+
+    // Cálculo Valorizado Total de Fila
+    const valorizadoTotalFila = diferencia * costoUnitario;
+    valueCell.innerText = `S/ ${valorizadoTotalFila.toFixed(2)}`;
+    valueCell.dataset.valorFila = valorizadoTotalFila; // Guardar valor calculado
+
+    calcularTotalGlobal();
 }
 
-async function fetchProd(input) {
-    const sku = input.value;
-    if(!sku) return;
-    const r = await fetch(`${SB_URL}/rest/v1/productos?sku=eq.${sku}`, {
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+function calcularTotalGlobal() {
+    let total = 0;
+    document.querySelectorAll('.cell-value').forEach(cell => {
+        total += parseFloat(cell.dataset.valorFila) || 0;
     });
-    const data = await r.json();
-    const row = input.closest('tr');
-    row.querySelector('.td-desc').innerText = data[0] ? data[0].descripcion : "❌";
-    calc(input);
+
+    const btn = document.getElementById('btnFinalizar');
+    // Deshabilitar botón si el total es cero
+    btn.disabled = (total === 0);
 }
 
-function calc(input) {
-    const row = input.closest('tr');
-    const k = parseFloat(row.querySelector('.qty-k').value) || 0;
-    const f = parseFloat(row.querySelector('.qty-f').value) || 0;
-    const d = f - k;
-    const res = row.querySelector('.td-diff');
-    res.innerHTML = `<span class="badge-diff ${d < 0 ? 'neg' : d > 0 ? 'pos' : ''}">${d}</span>`;
+// FINALIZAR Y GUARDAR EN LA TABLA "solicitudes"
+async function finalizarSolicitud() {
+    const filas = document.querySelectorAll('.inventory-row');
+    const datosSolicitud = [];
+
+    filas.forEach(row => {
+        const sku = row.querySelector('.input-sku').value.trim();
+        const descripcion = row.querySelector('.cell-description').innerText;
+        const diff = parseFloat(row.querySelector('.cell-diff').innerText);
+        const valorTotalFila = parseFloat(row.querySelector('.cell-value').dataset.valorFila);
+        const stKallpa = parseFloat(row.querySelector('.qty-kallpa').value) || 0;
+        const stFisico = parseFloat(row.querySelector('.qty-fisico').value) || 0;
+
+        if (sku && descripcion && descripcion !== "---" && !descripcion.startsWith("❌")) {
+            datosSolicitud.push({
+                tienda_codigo: tiendaActiva.codigo,
+                sku: sku,
+                descripcion: descripcion,
+                kallpa: stKallpa,
+                fisico: stFisico,
+                diferencia: diff,
+                valor_total_fila: valorTotalFila
+            });
+        }
+    });
+
+    if (datosSolicitud.length === 0) return alert("❌ No hay productos válidos para guardar.");
+
+    // Guardar en la tabla 'solicitudes' en Supabase
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/solicitudes`, {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+            body: JSON.stringify(datosSolicitud)
+        });
+        const savedData = await response.json();
+        
+        if (response.ok) {
+            mostrarTicket(savedData); // Mostrar resumen (Ticket)
+        } else { alert("❌ Error al guardar la solicitud."); }
+    } catch (e) { console.error(e); }
 }
 
-cargarTiendas();
+// MOSTRAR TICKET (RESUMEN PROFESIONAL)
+function mostrarTicket(data) {
+    // Ocultar formulario, mostrar ticket
+    document.getElementById('viewFormulario').style.display = 'none';
+    document.getElementById('userActions').style.display = 'none';
+    document.getElementById('viewResumen').classList.add('active');
+    
+    // Rellenar cabecera ticket
+    const now = new Date();
+    document.getElementById('ticketTienda').innerText = `${tiendaActiva.nombre} - ${tiendaActiva.codigo}`;
+    document.getElementById('ticketFecha').innerText = now.toLocaleDateString('es-PE') + ' ' + now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('ticketId').innerText = 'SOL-' + now.toISOString().replace(/[-:T]/g, '').slice(0, 14);
+
+    // Rellenar tabla ticket valorizada
+    const ticketBody = document.getElementById('ticketBody');
+    let totalValorizado = 0;
+    ticketBody.innerHTML = ''; // Limpiar
+
+    data.forEach(item => {
+        const valueFila = item.valor_total_fila;
+        totalValorizado += valueFila;
+        
+        ticketBody.innerHTML += `
+            <tr>
+                <td>${item.sku}</td>
+                <td>${item.descripcion}</td>
+                <td class="text-right ${item.diferencia < 0 ? 'diff-neg' : 'diff-pos'}">${item.diferencia > 0 ? '+' : ''}${item.diferencia}</td>
+                <td class="text-right">S/ ${valueFila.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    const ticketTotal = document.getElementById('ticketTotal');
+    ticketTotal.innerText = `S/ ${totalValorizado.toFixed(2)}`;
+    if (totalValorizado < 0) ticketTotal.classList.add('diff-neg');
+    else if (totalValorizado > 0) ticketTotal.classList.add('diff-pos');
+
+}
+
 </script>
 </body>
 </html>
