@@ -3,199 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>3A Perú | Gestión de Inventarios</title>
+    <title>3A Perú | Sistema de Gestión</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
-            --bg-dark: #0a0a0a;
-            --surface: #1a1a1a;
-            --accent-blue: #0056b3; /* Azul 3A */
-            --text-main: #ffffff;
-            --text-dim: #b3b3b3;
+            --bg: #050505;
+            --card: #121212;
+            --3a-blue: #0056b3;
+            --text: #ffffff;
+            --text-dim: #888;
             --danger: #ff4d4d;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        /* CONTENEDOR DE TRANSICIÓN */
-        .app-container { position: relative; width: 100%; height: 100%; }
+        .stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
         .view { 
             position: absolute; width: 100%; height: 100%; 
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column; opacity: 0; visibility: hidden; 
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0; transform: scale(1.05); pointer-events: none;
         }
-        .view.active { opacity: 1; visibility: visible; }
+        .view.active { opacity: 1; transform: scale(1); pointer-events: all; }
 
-        /* LOGIN VIEW */
-        .login-view { justify-content: center; align-items: center; background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%); }
-        .login-card { background: var(--surface); padding: 3rem; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid #333; text-align: center; }
-        .brand-logo { width: 120px; margin-bottom: 2rem; }
+        /* LOGIN */
+        .view-login { display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at center, #111 0%, #050505 100%); }
+        .login-box { background: var(--card); padding: 2.5rem; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #222; }
+        .logo-3a { width: 130px; margin-bottom: 2rem; }
         
         select, input { 
-            width: 100%; padding: 14px; background: #222; border: 1px solid #444; 
-            color: white; border-radius: 8px; margin-bottom: 20px; font-size: 1rem; outline: none;
+            width: 100%; padding: 14px; background: #1a1a1a; border: 1px solid #333; 
+            color: white; border-radius: 10px; margin-bottom: 1.2rem; font-size: 1rem; outline: none;
         }
-        select:focus, input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 2px rgba(0,86,179,0.3); }
+        select:focus, input:focus { border-color: var(--3a-blue); }
 
-        .btn-access { 
-            background: var(--accent-blue); color: white; border: none; padding: 15px; 
-            border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.3s;
+        .btn-main { 
+            background: var(--3a-blue); color: white; border: none; padding: 16px; 
+            border-radius: 10px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase;
         }
-        .btn-access:hover { background: #004494; transform: translateY(-2px); }
 
-        /* MAIN APP VIEW */
-        .main-view { background: var(--bg-dark); }
-        .header { height: 70px; background: var(--surface); display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; border-bottom: 1px solid #333; }
+        /* APP */
+        .nav-bar { height: 65px; background: #000; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem; border-bottom: 1px solid #222; }
+        .main-content { padding: 1.5rem; flex: 1; overflow-y: auto; max-width: 1100px; margin: 0 auto; width: 100%; }
         
-        .content { padding: 2rem; overflow-y: auto; flex: 1; }
+        .table-container { background: var(--card); border-radius: 12px; border: 1px solid #222; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        thead { background: var(--3a-blue); font-size: 0.7rem; text-transform: uppercase; }
+        th { padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
 
-        /* TABLA ESTILO 3A */
-        .table-card { background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid #333; }
-        table { width: 100%; border-collapse: collapse; }
-        thead { background: var(--accent-blue); }
-        th { padding: 15px; text-align: left; font-size: 0.8rem; text-transform: uppercase; }
-        td { padding: 12px 15px; border-bottom: 1px solid #333; }
-        
-        .input-inline { background: transparent; border: none; border-bottom: 1px solid #444; width: 100%; padding: 5px; color: white; }
-        .input-inline:focus { border-bottom-color: var(--accent-blue); }
+        .sku-group { display: flex; align-items: center; gap: 8px; }
+        .btn-scan { background: #333; border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; }
 
-        .diff-tag { font-weight: 800; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; }
-        .diff-neg { color: var(--danger); }
-        .diff-pos { color: #4ade80; }
+        .badge-diff { font-weight: 800; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+        .neg { color: var(--danger); background: rgba(255, 77, 77, 0.1); }
+        .pos { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
 
-        .btn-add { color: var(--accent-blue); background: none; border: none; cursor: pointer; font-weight: 700; margin-top: 1rem; padding: 10px; }
+        /* MODAL ESCANER */
+        #scanner-modal {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; justify-content: center; align-items: center;
+        }
+        #reader { width: 300px; border-radius: 10px; overflow: hidden; }
 
-        /* ANIMACIÓN DE SALIDA */
-        .slide-up { transform: translateY(-30px); opacity: 0; }
+        .exit-up { transform: translateY(-100%) !important; opacity: 0 !important; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        
-        <div id="viewLogin" class="view login-view active">
-            <div class="login-card">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" alt="Logo 3A" class="brand-logo">
-                <h2 style="margin-bottom: 1.5rem;">Gestión de Ajustes</h2>
+    <div class="stage">
+        <div id="loginView" class="view view-login active">
+            <div class="login-box">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" class="logo-3a">
+                <h2 style="margin-bottom: 1.5rem;">Acceso al Sistema</h2>
                 
-                <select id="tiendaSelect">
-                    <option value="">Seleccione Tienda...</option>
-                    </select>
+                <select id="selRol" onchange="toggleLoginType()">
+                    <option value="">Seleccione Rol...</option>
+                    <optgroup label="Administración">
+                        <option value="zonal">Supervisión Zonal</option>
+                        <option value="audit">Auditoría Central</option>
+                    </optgroup>
+                    <optgroup label="Tiendas" id="optTiendas"></optgroup>
+                </select>
                 
-                <input type="password" id="tiendaPin" placeholder="PIN de Seguridad">
-                
-                <button class="btn-access" onclick="ingresarApp()">INGRESAR AL SISTEMA</button>
-                <p id="loginError" style="color: var(--danger); font-size: 0.8rem; margin-top: 1rem;"></p>
+                <input type="password" id="txtPin" placeholder="PIN / Contraseña">
+                <button class="btn-main" onclick="entrar()">Ingresar</button>
+                <p id="errLogin" style="color: var(--danger); font-size: 0.8rem; margin-top: 1rem;"></p>
             </div>
         </div>
 
-        <div id="viewMain" class="view main-view">
-            <div class="header">
-                <div style="display:flex; align-items:center; gap:15px;">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" height="30">
-                    <h3 id="labelTiendaActiva">Tienda 000</h3>
+        <div id="appView" class="view">
+            <div class="nav-bar">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" height="20">
+                    <span id="labelUser" style="font-weight:700; font-size:0.9rem;">Tienda</span>
                 </div>
-                <button onclick="cerrarSesion()" style="background:none; border:1px solid #444; color:white; padding:8px 15px; border-radius:20px; cursor:pointer;">Cerrar</button>
+                <button onclick="location.reload()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">Cerrar</button>
             </div>
 
-            <div class="content">
-                <div class="table-card">
+            <div class="main-content">
+                <div style="margin-bottom: 1.5rem;">
+                    <h2 id="viewTitle">Ajuste de Inventario</h2>
+                </div>
+
+                <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>SKU</th>
                                 <th>Descripción</th>
-                                <th>St. Kallpa</th>
-                                <th>St. Físico</th>
-                                <th>Diferencia</th>
-                                <th>Acción</th>
+                                <th>Kallpa</th>
+                                <th>Físico</th>
+                                <th>Dif.</th>
                             </tr>
                         </thead>
-                        <tbody id="inventoryBody">
-                            </tbody>
+                        <tbody id="tablaBody"></tbody>
                     </table>
                 </div>
-                <button class="btn-add" onclick="agregarFila()">+ AGREGAR PRODUCTO</button>
+                <button onclick="nuevaFila()" style="background:none; border:1px dashed #444; color:var(--text-dim); width:100%; padding:15px; margin-top:10px; cursor:pointer;">+ Añadir Producto</button>
+                <button class="btn-main" style="margin-top:2rem;" onclick="alert('Ticket Generado')">FINALIZAR AJUSTE</button>
             </div>
         </div>
+    </div>
 
+    <div id="scanner-modal">
+        <div id="reader"></div>
+        <button onclick="cerrarEscaner()" style="margin-top:20px; padding:10px 20px; background:var(--danger); border:none; color:white; border-radius:5px;">Cancelar</button>
     </div>
 
 <script>
-const SUPABASE_URL = 'https://pjoiiygbuzwzlenwewnj.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqb2lpeWdidXp3emxlbndld25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjE1MzgsImV4cCI6MjA5MDIzNzUzOH0.VPl0IUwTjmf4K1HWoY6kmXNG-dHHrX-O0t9_-UivGWg';
+const SB_URL = 'https://pjoiiygbuzwzlenwewnj.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqb2lpeWdidXp3emxlbndld25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjE1MzgsImV4cCI6MjA5MDIzNzUzOH0.VPl0IUwTjmf4K1HWoY6kmXNG-dHHrX-O0t9_-UivGWg';
 
-let tiendasCache = [];
+let dbTiendas = [];
+let html5QrCode;
+let inputActualParaScan;
 
-async function init() {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?select=*&order=codigo.asc`, {
-        headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+async function cargarTiendas() {
+    const r = await fetch(`${SB_URL}/rest/v1/tiendas?select=*&order=codigo.asc`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
-    tiendasCache = await res.json();
-    const select = document.getElementById('tiendaSelect');
-    tiendasCache.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t.codigo;
-        opt.innerText = `${t.codigo} - ${t.nombre}`;
-        select.appendChild(opt);
-    });
+    dbTiendas = await r.json();
+    document.getElementById('optTiendas').innerHTML = dbTiendas.map(t => `<option value="${t.codigo}">${t.codigo} - ${t.nombre}</option>`).join('');
 }
 
-function ingresarApp() {
-    const cod = document.getElementById('tiendaSelect').value;
-    const pin = document.getElementById('tiendaPin').value;
-    const tienda = tiendasCache.find(t => t.codigo == cod);
+function entrar() {
+    const rol = document.getElementById('selRol').value;
+    const pin = document.getElementById('txtPin').value;
+    
+    if(!rol || !pin) return;
 
-    if (tienda && tienda.pin == pin) {
-        document.getElementById('labelTiendaActiva').innerText = `📍 ${tienda.nombre} (${tienda.codigo})`;
-        document.getElementById('viewLogin').classList.remove('active');
-        document.getElementById('viewMain').classList.add('active');
-        agregarFila();
+    if(rol === 'zonal' || rol === 'audit') {
+        if(pin === '3A2026') { // Clave genérica para admin
+            document.getElementById('labelUser').innerText = rol === 'zonal' ? "MODO ZONAL" : "MODO AUDITORÍA";
+            document.getElementById('viewTitle').innerText = "Validación de Solicitudes";
+            document.getElementById('loginView').classList.add('exit-up');
+            setTimeout(() => { document.getElementById('loginView').classList.remove('active'); document.getElementById('appView').classList.add('active'); }, 400);
+        } else { alert("Clave admin incorrecta"); }
     } else {
-        document.getElementById('loginError').innerText = "Acceso denegado. Verifique sus datos.";
+        const t = dbTiendas.find(x => x.codigo == rol);
+        if(t && t.pin == pin) {
+            document.getElementById('labelUser').innerText = `📍 ${t.nombre}`;
+            document.getElementById('loginView').classList.add('exit-up');
+            setTimeout(() => { document.getElementById('loginView').classList.remove('active'); document.getElementById('appView').classList.add('active'); nuevaFila(); }, 400);
+        } else { alert("PIN de tienda incorrecto"); }
     }
 }
 
-function agregarFila() {
+function nuevaFila() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td><input type="text" class="input-inline" placeholder="SKU" onblur="buscarProducto(this)"></td>
-        <td class="desc-cell" style="color:#888">Cargando...</td>
-        <td><input type="number" class="input-inline qty-kallpa" value="0" oninput="calcular(this)"></td>
-        <td><input type="number" class="input-inline qty-fisico" value="0" oninput="calcular(this)"></td>
-        <td class="diff-cell"><span class="diff-tag">0</span></td>
-        <td><button onclick="this.closest('tr').remove()" style="color:var(--danger); background:none; border:none; cursor:pointer;">✕</button></td>
+        <td>
+            <div class="sku-group">
+                <input type="text" class="sku-input" style="width:80px; background:none; border:none; border-bottom:1px solid #444; color:white;" placeholder="SKU" onblur="fetchProd(this)">
+                <button class="btn-scan" onclick="abrirEscaner(this)">📷</button>
+            </div>
+        </td>
+        <td class="td-desc" style="color:var(--text-dim); font-size:0.8rem;">---</td>
+        <td><input type="number" class="qty-k" value="0" style="width:50px; background:none; border:none; color:white;" oninput="calc(this)"></td>
+        <td><input type="number" class="qty-f" value="0" style="width:50px; background:none; border:none; color:white;" oninput="calc(this)"></td>
+        <td class="td-diff"><span class="badge-diff">0</span></td>
     `;
-    document.getElementById('inventoryBody').appendChild(tr);
+    document.getElementById('tablaBody').appendChild(tr);
 }
 
-async function buscarProducto(input) {
+// LÓGICA DEL ESCÁNER
+function abrirEscaner(btn) {
+    inputActualParaScan = btn.parentElement.querySelector('.sku-input');
+    document.getElementById('scanner-modal').style.display = 'flex';
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+        (decodedText) => {
+            inputActualParaScan.value = decodedText;
+            fetchProd(inputActualParaScan);
+            cerrarEscaner();
+        }
+    );
+}
+
+function cerrarEscaner() {
+    if(html5QrCode) html5QrCode.stop();
+    document.getElementById('scanner-modal').style.display = 'none';
+}
+
+async function fetchProd(input) {
     const sku = input.value;
-    const row = input.closest('tr');
     if(!sku) return;
-    
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/productos?sku=eq.${sku}`, {
-        headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+    const r = await fetch(`${SB_URL}/rest/v1/productos?sku=eq.${sku}`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
-    const data = await res.json();
-    row.querySelector('.desc-cell').innerText = data[0]?.descripcion || "No encontrado";
-}
-
-function calcular(input) {
+    const data = await r.json();
     const row = input.closest('tr');
-    const k = parseFloat(row.querySelector('.qty-kallpa').value) || 0;
-    const f = parseFloat(row.querySelector('.qty-fisico').value) || 0;
-    const diff = f - k;
-    const cell = row.querySelector('.diff-cell');
-    cell.innerHTML = `<span class="diff-tag ${diff < 0 ? 'diff-neg' : 'diff-pos'}">${diff}</span>`;
+    row.querySelector('.td-desc').innerText = data[0] ? data[0].descripcion : "❌";
+    calc(input);
 }
 
-function cerrarSesion() {
-    location.reload();
+function calc(input) {
+    const row = input.closest('tr');
+    const k = parseFloat(row.querySelector('.qty-k').value) || 0;
+    const f = parseFloat(row.querySelector('.qty-f').value) || 0;
+    const d = f - k;
+    const res = row.querySelector('.td-diff');
+    res.innerHTML = `<span class="badge-diff ${d < 0 ? 'neg' : d > 0 ? 'pos' : ''}">${d}</span>`;
 }
 
-init();
+cargarTiendas();
 </script>
 </body>
 </html>
