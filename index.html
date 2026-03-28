@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>3A Perú | Gestión de Inventarios</title>
+    <title>3A Perú | Sistema de Gestión</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -14,120 +14,128 @@
             --text: #ffffff;
             --text-dim: #888;
             --danger: #ff4d4d;
-            --success: #1ED760;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        .stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
+        .stage { position: relative; width: 100%; height: 100%; }
         .view { 
             position: absolute; width: 100%; height: 100%; 
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            opacity: 0; transform: scale(1.05); pointer-events: none;
+            transition: all 0.5s ease; opacity: 0; pointer-events: none;
+            display: flex; flex-direction: column;
         }
-        .view.active { opacity: 1; transform: scale(1); pointer-events: all; }
+        .view.active { opacity: 1; pointer-events: all; }
+
+        /* HEADER */
+        .nav-bar { height: 60px; background: #000; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem; border-bottom: 1px solid #222; }
+        
+        /* TABLAS COMPACTAS */
+        .main-content { padding: 1rem; flex: 1; overflow-y: auto; max-width: 900px; margin: 0 auto; width: 100%; }
+        .table-container { background: var(--card); border-radius: 8px; border: 1px solid #222; overflow: hidden; margin-bottom: 1rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead { background: var(--3a-blue); color: white; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #222; }
+
+        /* BOTONES */
+        .btn-main { background: var(--3a-blue); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; }
+        .btn-scan { background: #333; border: none; color: white; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
 
         /* LOGIN */
-        .view-login { display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at center, #111 0%, #050505 100%); }
+        .view-login { justify-content: center; align-items: center; background: #000; }
         .login-box { background: var(--card); padding: 2rem; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; border: 1px solid #222; }
-        .logo-3a { width: 100px; margin-bottom: 1.5rem; }
+        select, input { width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 1rem; }
+
+        /* TICKET RESUMEN */
+        .ticket { background: white; color: black; padding: 1.5rem; border-radius: 4px; font-family: monospace; max-width: 400px; margin: 2rem auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        select, input { 
-            width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; 
-            color: white; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; outline: none;
-        }
-
-        /* TABLA COMPACTA PROFESIONAL */
-        .nav-bar { height: 60px; background: #000; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem; border-bottom: 1px solid #222; }
-        .main-content { padding: 1rem; flex: 1; overflow-y: auto; max-width: 850px; margin: 0 auto; width: 100%; }
-        
-        .table-container { background: var(--card); border-radius: 8px; border: 1px solid #222; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        thead { background: var(--3a-blue); }
-        th { padding: 10px; text-align: left; text-transform: uppercase; }
-        td { padding: 8px 10px; border-bottom: 1px solid #222; }
-
-        .sku-group { display: flex; align-items: center; gap: 5px; }
-        .btn-scan { background: #333; border: none; color: white; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
-
-        .btn-main { 
-            background: var(--3a-blue); color: white; border: none; padding: 12px; 
-            border-radius: 8px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;
-        }
-
-        /* RESUMEN (TICKET) */
-        .ticket { background: white; color: black; padding: 2rem; border-radius: 5px; font-family: monospace; max-width: 450px; margin: 2rem auto; }
-        .ticket h2 { border-bottom: 2px dashed black; padding-bottom: 10px; margin-bottom: 10px; text-align: center; }
-
-        #reader { width: 100%; max-width: 300px; margin: 0 auto; }
-        .exit-up { transform: translateY(-100%) !important; opacity: 0 !important; }
+        #reader { width: 100%; max-width: 300px; margin: 0 auto; border-radius: 10px; overflow: hidden; }
     </style>
 </head>
 <body>
 
     <div class="stage">
-        <div id="loginView" class="view view-login active">
-            <div class="login-box">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" class="logo-3a">
-                <select id="selRol">
-                    <option value="">Seleccione Tienda / Rol</option>
-                    <option value="zonal">Supervisión Zonal</option>
-                    <optgroup label="Tiendas" id="optTiendas"></optgroup>
-                </select>
-                <input type="password" id="txtPin" placeholder="PIN de Seguridad">
-                <button class="btn-main" onclick="entrar()">Ingresar</button>
+        <div id="loginView" class="view active">
+            <div class="view-login" style="height:100%; display:flex; justify-content:center;">
+                <div class="login-box">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfU6Lp_4y-6PjO5H45XoZ6pXfW4qj9N6O7Ag&s" style="width:80px; margin-bottom:1rem;">
+                    <select id="selRol">
+                        <option value="">Seleccione Rol...</option>
+                        <option value="zonal">Supervisión Zonal / Auditoría</option>
+                        <optgroup label="Tiendas" id="optTiendas"></optgroup>
+                    </select>
+                    <input type="password" id="txtPin" placeholder="PIN de Seguridad">
+                    <button class="btn-main" onclick="entrar()">Ingresar</button>
+                </div>
             </div>
         </div>
 
-        <div id="appView" class="view">
+        <div id="appTienda" class="view">
             <div class="nav-bar">
-                <span id="labelUser" style="font-weight:700; font-size:0.8rem;">Tienda</span>
-                <button onclick="location.reload()" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:0.7rem;">Cerrar</button>
+                <span id="labelTienda" style="font-weight:800; font-size:0.8rem;">TIENDA</span>
+                <button onclick="location.reload()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">Cerrar</button>
             </div>
-
             <div class="main-content">
-                <h3 style="margin-bottom: 1rem; font-weight: 800;">Ajuste de Inventario</h3>
+                <h4 style="margin-bottom:1rem;">Nueva Solicitud de Ajuste</h4>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 120px;">SKU</th>
+                                <th style="width:130px;">SKU</th>
                                 <th>Descripción</th>
-                                <th>Kallpa</th>
-                                <th>Físico</th>
-                                <th>Dif.</th>
+                                <th style="width:60px;">Kallpa</th>
+                                <th style="width:60px;">Físico</th>
+                                <th style="width:50px;">Dif.</th>
                             </tr>
                         </thead>
                         <tbody id="tablaBody"></tbody>
                     </table>
                 </div>
-                <button onclick="nuevaFila()" style="background:none; border:1px dashed #444; color:var(--text-dim); width:100%; padding:10px; margin-top:10px; cursor:pointer; font-size:0.7rem;">+ Añadir SKU</button>
-                <button class="btn-main" style="margin-top:1.5rem; background: var(--success); color: black;" onclick="finalizarSolicitud()">FINALIZAR SOLICITUD</button>
+                <button onclick="nuevaFila()" style="background:none; border:1px dashed #444; color:var(--text-dim); width:100%; padding:8px; margin-bottom:1rem; cursor:pointer; font-size:0.7rem;">+ Añadir Producto</button>
+                <button class="btn-main" onclick="finalizarSolicitud()">FINALIZAR SOLICITUD</button>
             </div>
         </div>
 
-        <div id="ticketView" class="view" style="background: #000; overflow-y: auto;">
+        <div id="appZonal" class="view">
+            <div class="nav-bar">
+                <span style="font-weight:800; font-size:0.8rem;">PANEL DE CONTROL (ZONAL/AUDITORÍA)</span>
+                <button onclick="location.reload()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">Cerrar</button>
+            </div>
+            <div class="main-content">
+                <h4 style="margin-bottom:1rem;">Solicitudes Pendientes de Tiendas</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tienda</th>
+                                <th>SKU</th>
+                                <th>Dif.</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="zonalBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="ticketView" class="view" style="background:#000; overflow-y:auto;">
             <div class="ticket">
-                <h2>3A PERÚ - RESUMEN</h2>
-                <p><b>ID:</b> <span id="resId"></span></p>
-                <p><b>Tienda:</b> <span id="resTienda"></span></p>
-                <p><b>Fecha:</b> <span id="resFecha"></span></p>
-                <hr style="margin: 10px 0; border: 1px dashed black;">
-                <table style="width: 100%; color: black; font-size: 0.7rem;">
-                    <thead><tr style="background:none; color:black;"><th>SKU</th><th>DESCRIPCIÓN</th><th style="text-align:right;">DIF</th></tr></thead>
+                <h3 style="text-align:center; border-bottom:1px solid #000; padding-bottom:5px;">3A PERÚ - SOLICITUD</h3>
+                <p style="font-size:0.7rem; margin:10px 0;"><b>Tienda:</b> <span id="resTienda"></span><br><b>Fecha:</b> <span id="resFecha"></span></p>
+                <table style="width:100%; font-size:0.65rem; color:black;">
+                    <thead><tr style="background:none; color:black; border-bottom:1px solid #000;"><th>SKU</th><th>DESCR.</th><th style="text-align:right;">DIF</th></tr></thead>
                     <tbody id="resBody"></tbody>
                 </table>
-                <div style="text-align:center; margin-top:20px;">
-                    <button class="btn-main" onclick="location.reload()">NUEVA SOLICITUD</button>
-                </div>
+                <button class="btn-main" style="margin-top:20px; background:#000;" onclick="location.reload()">NUEVA SOLICITUD</button>
             </div>
         </div>
     </div>
 
-    <div id="scannerArea" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; flex-direction:column; justify-content:center;">
+    <div id="scannerArea" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999; flex-direction:column; justify-content:center; align-items:center;">
         <div id="reader"></div>
-        <button onclick="cerrarEscaner()" style="margin-top:20px; color:white; background:red; border:none; padding:10px; border-radius:5px;">Cerrar Cámara</button>
+        <button onclick="cerrarEscaner()" style="margin-top:20px; background:var(--danger); color:white; border:none; padding:10px 20px; border-radius:5px;">Cerrar Cámara</button>
     </div>
 
 <script>
@@ -148,30 +156,34 @@ function entrar() {
     const pin = document.getElementById('txtPin').value;
     const t = dbTiendas.find(x => x.codigo == rol);
 
-    if ((t && t.pin == pin) || (rol === 'zonal' && pin === '3A2026')) {
-        document.getElementById('labelUser').innerText = t ? t.nombre : "MODO ZONAL";
-        document.getElementById('loginView').classList.add('exit-up');
-        setTimeout(() => { 
-            document.getElementById('loginView').classList.remove('active'); 
-            document.getElementById('appView').classList.add('active'); 
-            nuevaFila(); 
-        }, 400);
-    } else { alert("Acceso Incorrecto"); }
+    document.getElementById('loginView').classList.remove('active');
+
+    if (rol === 'zonal' && pin === '3A2026') {
+        document.getElementById('appZonal').classList.add('active');
+        cargarSolicitudesZonal();
+    } else if (t && t.pin == pin) {
+        document.getElementById('labelTienda').innerText = `📍 ${t.nombre} (${t.codigo})`;
+        document.getElementById('appTienda').classList.add('active');
+        nuevaFila();
+    } else {
+        alert("PIN Incorrecto");
+        document.getElementById('loginView').classList.add('active');
+    }
 }
 
+// --- LÓGICA TIENDA ---
 function nuevaFila() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td><div class="sku-group"><input type="text" class="sku-input" placeholder="SKU" onblur="fetchProd(this)"><button class="btn-scan" onclick="abrirEscaner(this)">📷</button></div></td>
-        <td class="td-desc" style="color:var(--text-dim); font-size:0.7rem;">---</td>
-        <td><input type="number" class="qty-k" value="0" oninput="calc(this)" style="width:40px;"></td>
-        <td><input type="number" class="qty-f" value="0" oninput="calc(this)" style="width:40px;"></td>
-        <td class="td-diff"><span class="badge-diff">0</span></td>
+        <td><div style="display:flex; gap:4px;"><input type="text" class="sku-input" placeholder="SKU" onblur="fetchProd(this)" style="width:70px; margin:0; padding:4px;"><button class="btn-scan" onclick="abrirEscaner(this)">📷</button></div></td>
+        <td class="td-desc" style="color:var(--text-dim); font-size:0.65rem;">---</td>
+        <td><input type="number" class="qty-k" value="0" oninput="calc(this)" style="width:40px; margin:0; padding:4px;"></td>
+        <td><input type="number" class="qty-f" value="0" oninput="calc(this)" style="width:40px; margin:0; padding:4px;"></td>
+        <td class="badge-diff" style="font-weight:800;">0</td>
     `;
     document.getElementById('tablaBody').appendChild(tr);
 }
 
-// TU FUNCIÓN MODIFICADA PARA GUARDAR EN 'solicitudes' Y MOSTRAR RESUMEN
 async function finalizarSolicitud() {
     const filas = document.querySelectorAll('#tablaBody tr');
     const datosSolicitud = [];
@@ -183,51 +195,51 @@ async function finalizarSolicitud() {
         const desc = fila.querySelector('.td-desc').innerText;
         
         if(sku && desc !== "---") {
-            const item = {
-                tienda: document.getElementById('labelUser').innerText,
+            datosSolicitud.push({
+                tienda: document.getElementById('labelTienda').innerText,
                 sku: sku,
                 diferencia: parseInt(diff),
                 fecha: new Date().toISOString()
-            };
-            datosSolicitud.push(item);
+            });
             resumenItems.push({sku, desc, diff});
         }
     });
 
-    if (datosSolicitud.length === 0) return alert("No hay datos válidos");
+    if (datosSolicitud.length === 0) return alert("No hay datos");
 
     const response = await fetch(`${SB_URL}/rest/v1/solicitudes`, {
         method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(datosSolicitud)
     });
 
     if(response.ok) {
-        // MOSTRAR TICKET RESUMEN
-        document.getElementById('appView').classList.remove('active');
+        document.getElementById('appTienda').classList.remove('active');
         document.getElementById('ticketView').classList.add('active');
-        document.getElementById('resId').innerText = "SOL-" + Math.floor(Math.random()*1000000);
-        document.getElementById('resTienda').innerText = document.getElementById('labelUser').innerText;
+        document.getElementById('resTienda').innerText = document.getElementById('labelTienda').innerText;
         document.getElementById('resFecha').innerText = new Date().toLocaleString();
         document.getElementById('resBody').innerHTML = resumenItems.map(i => `<tr><td>${i.sku}</td><td>${i.desc}</td><td style="text-align:right;">${i.diff}</td></tr>`).join('');
-    } else {
-        alert("❌ Error al guardar en base de datos.");
     }
 }
 
-// ESCANER
-function abrirEscaner(btn) {
-    const input = btn.parentElement.querySelector('.sku-input');
-    document.getElementById('scannerArea').style.display = 'flex';
-    html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-        input.value = text;
-        fetchProd(input);
-        cerrarEscaner();
+// --- LÓGICA ZONAL / AUDITORÍA ---
+async function cargarSolicitudesZonal() {
+    const r = await fetch(`${SB_URL}/rest/v1/solicitudes?select=*&order=fecha.desc`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
+    const data = await r.json();
+    document.getElementById('zonalBody').innerHTML = data.map(s => `
+        <tr>
+            <td style="font-size:0.6rem;">${new Date(s.fecha).toLocaleDateString()}</td>
+            <td>${s.tienda}</td>
+            <td>${s.sku}</td>
+            <td style="font-weight:800; color:${s.diferencia < 0 ? 'red' : 'white'}">${s.diferencia}</td>
+            <td><button style="background:none; border:1px solid #444; color:white; font-size:0.6rem; padding:2px 5px; border-radius:3px;">Validar</button></td>
+        </tr>
+    `).join('');
 }
-function cerrarEscaner() { if(html5QrCode) html5QrCode.stop(); document.getElementById('scannerArea').style.display = 'none'; }
 
+// --- UTILIDADES ---
 async function fetchProd(input) {
     const r = await fetch(`${SB_URL}/rest/v1/productos?sku=eq.${input.value}`, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
     const data = await r.json();
@@ -237,13 +249,21 @@ async function fetchProd(input) {
 
 function calc(input) {
     const row = input.closest('tr');
-    const k = parseFloat(row.querySelector('.qty-k').value) || 0;
-    const f = parseFloat(row.querySelector('.qty-f').value) || 0;
-    const d = f - k;
-    const badge = row.querySelector('.badge-diff');
-    badge.innerText = d;
-    badge.style.color = d < 0 ? 'var(--danger)' : d > 0 ? 'var(--success)' : 'white';
+    const d = (parseFloat(row.querySelector('.qty-f').value) || 0) - (parseFloat(row.querySelector('.qty-k').value) || 0);
+    const b = row.querySelector('.badge-diff');
+    b.innerText = d;
+    b.style.color = d < 0 ? 'var(--danger)' : 'white';
 }
+
+function abrirEscaner(btn) {
+    const inp = btn.parentElement.querySelector('.sku-input');
+    document.getElementById('scannerArea').style.display = 'flex';
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (t) => {
+        inp.value = t; fetchProd(inp); cerrarEscaner();
+    });
+}
+function cerrarEscaner() { if(html5QrCode) html5QrCode.stop(); document.getElementById('scannerArea').style.display = 'none'; }
 
 init();
 </script>
